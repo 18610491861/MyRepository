@@ -40,7 +40,6 @@
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:visibility="gone"
             android:enabled="false"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -71,7 +70,7 @@
     </RelativeLayout>
 
 
-    <androidx.recyclerview.widget.RecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/picture_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

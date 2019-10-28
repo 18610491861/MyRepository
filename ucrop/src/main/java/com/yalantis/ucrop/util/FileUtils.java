@@ -25,10 +25,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -148,8 +147,7 @@ public class FileUtils {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return context
-                            .getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + split[1];
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
                 }
 
                 // TODO handle non-primary volumes
@@ -291,12 +289,4 @@ public class FileUtils {
         return false;
     }
 
-    public static String getDirName(String filePath) {
-        if (TextUtils.isEmpty(filePath)) {
-            return filePath;
-        } else {
-            int lastSep = filePath.lastIndexOf(File.separator);
-            return lastSep == -1 ? "" : filePath.substring(0, lastSep + 1);
-        }
-    }
 }

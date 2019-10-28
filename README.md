@@ -1,11 +1,11 @@
 # PictureSelector 2.0 
    一款针对android平台下的图片选择器，支持从相册或拍照选择图片或视频、音频，支持动态权限获取、裁剪(单图or多图裁剪)、压缩、主题自定义配置等功能、适配android 6.0+系统的开源图片选择框架。<br>  
   
-  <br>项目会一直维护(有bug修复完成，一般周末会更新(不好意思，最近比较忙有时间会解决~有问题先提issue))，有bug请描述清楚，并请Issues会第一时间修复，个人QQ 893855882@qq.com  希望用得着的朋友点个star。 <br>
- Android开发交流 群一 619458861 (已满) <br> 
+  <br>项目会一直维护(有bug修复完成，一般周末会更新)，有bug请描述清楚，并请Issues会第一时间修复，个人QQ 893855882@qq.com  希望用得着的朋友点个star。 <br>
+ Android开发交流 群一 619458861）(已满) <br> 
  Android开发交流 群二 679824206 <br> 
- 
-  [我的博客地址](http://blog.csdn.net/luck_mw)   
+   
+  [我的博客地址](http://blog.csdn.net/luck_mw) 
   
 [![](https://jitpack.io/v/LuckSiege/PictureSelector.svg)](https://jitpack.io/#LuckSiege/PictureSelector)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](https://github.com/LuckSiege)
@@ -27,7 +27,6 @@
 -[兼容性测试](#兼容性测试)<br>
 -[演示效果](#演示效果)<br>
 -[打赏](#打赏)<br>
-
 
 # 功能特点
 
@@ -74,7 +73,7 @@
 
 ```
 dependencies {
-    implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.2.4'
+    implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.2.2'
 }
 
 ```
@@ -107,7 +106,7 @@ step 2.
 <dependency>
       <groupId>com.github.LuckSiege.PictureSelector</groupId>
       <artifactId>picture_library</artifactId>
-      <version>v2.2.4</version> 
+      <version>v2.2.2</version> 
 </dependency>
 
 ```
@@ -167,12 +166,6 @@ glide冲突
 RequestOptions options = new RequestOptions();
 options.placeholder(R.drawable.image);
 Glide.with(context).load(url).apply(options).into(imageView);
-
-问题五：
-拍照出现损坏问题
-如果出现拍照返回后图片加载不出来出现已损坏现象，建议提前获取一下存储权限，也就是通过RxPermissions.request  
-WRITE_EXTERNAL_STORAGE 
-READ_EXTERNAL_STORAGE
 
 ```
 
@@ -345,22 +338,13 @@ PictureSelector.create(MainActivity.this).externalPictureVideo(video_path);
 ## 更新日志
 
 # 当前版本：
-* v2.2.4
-1.适配Android Q 版本
-2.修复Android Q多图裁剪失败问题
-3.升级glide、Luan 最新版本
-4.修复了部分已知问题
-
-# 历史版本：
-* v2.2.3
-* 1.修复沉浸式在部分机型标题栏遮挡情况
-
 * v2.2.2
 * 1.优化外部预览界面样式不同步问题
 * 2.优化沉浸式方案，适配更多机型
 * 3.新增isDragFrame(false) API  是否可拖动裁剪框(固定)
 * 4.修复录音会生成重复文件问题
 
+# 历史版本：
 * v2.2.0
 * 1.修复单独拍照+裁剪图片不返回问题
 
@@ -484,7 +468,6 @@ PictureSelector.create(MainActivity.this).externalPictureVideo(video_path);
 ******腾讯优测-深度测试-通过率达到100%******
 
 ![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/test.png)
-
 
 ## 演示效果
 

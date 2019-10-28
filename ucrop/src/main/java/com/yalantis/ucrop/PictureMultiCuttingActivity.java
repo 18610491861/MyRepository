@@ -9,20 +9,17 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.IdRes;
-import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
+import android.support.annotation.ColorInt;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.IdRes;
+import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -724,14 +721,10 @@ public class PictureMultiCuttingActivity extends AppCompatActivity {
         String path = cutInfos.get(cutIndex).getPath();
         boolean isHttp = FileUtils.isHttp(path);
         String imgType = getLastImgType(path);
-        boolean isAndroidQ = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-        Uri uri = isHttp || isAndroidQ ? Uri.parse(path) : Uri.fromFile(new File(path));
+        Uri uri = isHttp ? Uri.parse(path) : Uri.fromFile(new File(path));
         extras.putParcelable(UCropMulti.EXTRA_INPUT_URI, uri);
-
-        File file = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) ?
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES) : getCacheDir();
         extras.putParcelable(UCropMulti.EXTRA_OUTPUT_URI,
-                Uri.fromFile(new File(file, System.currentTimeMillis() + imgType)));
+                Uri.fromFile(new File(getCacheDir(), System.currentTimeMillis() + imgType)));
         intent.putExtras(extras);
         setupViews(intent);
         setInitialState();

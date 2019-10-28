@@ -7,12 +7,9 @@ import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
-import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.yalantis.ucrop.callback.BitmapCropCallback;
 import com.yalantis.ucrop.model.CropParameters;
@@ -51,8 +48,7 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
 
     private final Bitmap.CompressFormat mCompressFormat;
     private final int mCompressQuality;
-    private final Uri mImageInputUri;
-    private final String mImageOutputPath;
+    private final String mImageInputPath, mImageOutputPath;
     private final ExifInfo mExifInfo;
     private final BitmapCropCallback mCropCallback;
 
@@ -76,7 +72,7 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
         mCompressFormat = cropParameters.getCompressFormat();
         mCompressQuality = cropParameters.getCompressQuality();
 
-        mImageInputUri = cropParameters.getImageInputUri();
+        mImageInputPath = cropParameters.getImageInputPath();
         mImageOutputPath = cropParameters.getImageOutputPath();
         mExifInfo = cropParameters.getExifInfo();
 
@@ -152,31 +148,14 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
         Log.i(TAG, "Should crop: " + shouldCrop);
 
         if (shouldCrop) {
-            ExifInterface originalExif = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    ParcelFileDescriptor parcelFileDescriptor =
-                            mContext.get().getContentResolver().openFileDescriptor(mImageInputUri, "r");
-                    originalExif = new ExifInterface(parcelFileDescriptor.getFileDescriptor());
-                }
-                saveImage(Bitmap.createBitmap(mViewBitmap, cropOffsetX, cropOffsetY, mCroppedImageWidth, mCroppedImageHeight));
-                if (mCompressFormat.equals(Bitmap.CompressFormat.JPEG)) {
-                    ImageHeaderParser.copyExif(originalExif, mCroppedImageWidth, mCroppedImageHeight, mImageOutputPath);
-                }
-            } else {
-                originalExif = new ExifInterface(mImageInputUri.getPath());
-                saveImage(Bitmap.createBitmap(mViewBitmap, cropOffsetX, cropOffsetY, mCroppedImageWidth, mCroppedImageHeight));
-                if (mCompressFormat.equals(Bitmap.CompressFormat.JPEG)) {
-                    ImageHeaderParser.copyExif(originalExif, mCroppedImageWidth, mCroppedImageHeight, mImageOutputPath);
-                }
+            ExifInterface originalExif = new ExifInterface(mImageInputPath);
+            saveImage(Bitmap.createBitmap(mViewBitmap, cropOffsetX, cropOffsetY, mCroppedImageWidth, mCroppedImageHeight));
+            if (mCompressFormat.equals(Bitmap.CompressFormat.JPEG)) {
+                ImageHeaderParser.copyExif(originalExif, mCroppedImageWidth, mCroppedImageHeight, mImageOutputPath);
             }
             return true;
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                return true;
-            } else {
-                FileUtils.copyFile(mImageInputUri.getPath(), mImageOutputPath);
-            }
+            FileUtils.copyFile(mImageInputPath, mImageOutputPath);
             return false;
         }
     }

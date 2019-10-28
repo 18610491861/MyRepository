@@ -10,17 +10,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.yalantis.ucrop.callback.BitmapLoadCallback;
 import com.yalantis.ucrop.model.ExifInfo;
 import com.yalantis.ucrop.util.BitmapLoadUtils;
-import com.yalantis.ucrop.util.BitmapUtils;
 import com.yalantis.ucrop.util.FileUtils;
 
 import java.io.BufferedInputStream;
@@ -169,24 +167,15 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
                 throw e;
             }
         } else {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    Bitmap bitmapFromUri = BitmapUtils.getBitmapFromUri(mContext, mInputUri);
-                    BitmapUtils.saveBitmap(bitmapFromUri, mOutputUri.getPath());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            String path = getFilePath();
+            if (!TextUtils.isEmpty(path) && new File(path).exists()) {
+                mInputUri = Uri.fromFile(new File(path));
             } else {
-                String path = getFilePath();
-                if (!TextUtils.isEmpty(path) && new File(path).exists()) {
-                    mInputUri = Uri.fromFile(new File(path));
-                } else {
-                    try {
-                        copyFile(mInputUri, mOutputUri);
-                    } catch (NullPointerException | IOException e) {
-                        Log.e(TAG, "Copying failed", e);
-                        throw e;
-                    }
+                try {
+                    copyFile(mInputUri, mOutputUri);
+                } catch (NullPointerException | IOException e) {
+                    Log.e(TAG, "Copying failed", e);
+                    throw e;
                 }
             }
         }
@@ -305,7 +294,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
     @Override
     protected void onPostExecute(@NonNull BitmapWorkerResult result) {
         if (result.mBitmapWorkerException == null) {
-            mBitmapLoadCallback.onBitmapLoaded(result.mBitmapResult, result.mExifInfo, mInputUri, (mOutputUri == null) ? null : mOutputUri);
+            mBitmapLoadCallback.onBitmapLoaded(result.mBitmapResult, result.mExifInfo, mInputUri.getPath(), (mOutputUri == null) ? null : mOutputUri.getPath());
         } else {
             mBitmapLoadCallback.onFailure(result.mBitmapWorkerException);
         }

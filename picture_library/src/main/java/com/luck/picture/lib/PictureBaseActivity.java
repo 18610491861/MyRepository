@@ -10,10 +10,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.luck.picture.lib.compress.Luban;
 import com.luck.picture.lib.compress.OnCompressListener;
@@ -26,15 +25,12 @@ import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.entity.LocalMediaFolder;
 import com.luck.picture.lib.immersive.ImmersiveManage;
 import com.luck.picture.lib.rxbus2.RxBus;
-import com.luck.picture.lib.rxbus2.RxUtils;
 import com.luck.picture.lib.tools.AttrsUtils;
 import com.luck.picture.lib.tools.DateUtils;
 import com.luck.picture.lib.tools.DoubleUtils;
 import com.luck.picture.lib.tools.PictureFileUtils;
-import com.luck.picture.lib.tools.SdkVersionUtils;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropMulti;
-import com.yalantis.ucrop.util.BitmapUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,6 +38,8 @@ import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -210,23 +208,29 @@ public class PictureBaseActivity extends FragmentActivity {
         if (config.synOrAsy) {
             Flowable.just(result)
                     .observeOn(Schedulers.io())
-                    .map(list -> {
-                        List<File> files =
-                                Luban.with(mContext)
-                                        .loadMediaData(list)
-                                        .setTargetDir(config.compressSavePath)
-                                        .ignoreBy(config.minimumCompressSize)
-                                        .get();
-                        if (files == null) {
-                            files = new ArrayList<>();
+                    .map(new Function<List<LocalMedia>, List<File>>() {
+                        @Override
+                        public List<File> apply(@NonNull List<LocalMedia> list) throws Exception {
+                            List<File> files = Luban.with(mContext)
+                                    .setTargetDir(config.compressSavePath)
+                                    .ignoreBy(config.minimumCompressSize)
+                                    .loadLocalMedia(list).get();
+                            if (files == null) {
+                                files = new ArrayList<>();
+                            }
+                            return files;
                         }
-                        return files;
                     })
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(files -> handleCompressCallBack(result, files));
+                    .subscribe(new Consumer<List<File>>() {
+                        @Override
+                        public void accept(@NonNull List<File> files) throws Exception {
+                            handleCompressCallBack(result, files);
+                        }
+                    });
         } else {
             Luban.with(this)
-                    .loadMediaData(result)
+                    .loadLocalMedia(result)
                     .ignoreBy(config.minimumCompressSize)
                     .setTargetDir(config.compressSavePath)
                     .setCompressListener(new OnCompressListener() {
@@ -296,8 +300,7 @@ public class PictureBaseActivity extends FragmentActivity {
         options.setFreeStyleCropEnabled(config.freeStyleCropEnabled);
         boolean isHttp = PictureMimeType.isHttp(originalPath);
         String imgType = PictureMimeType.getLastImgType(originalPath);
-        boolean isAndroidQ = SdkVersionUtils.checkedAndroid_Q();
-        Uri uri = isHttp || isAndroidQ ? Uri.parse(originalPath) : Uri.fromFile(new File(originalPath));
+        Uri uri = isHttp ? Uri.parse(originalPath) : Uri.fromFile(new File(originalPath));
         UCrop.of(uri, Uri.fromFile(new File(PictureFileUtils.getDiskCacheDir(this),
                 System.currentTimeMillis() + imgType)))
                 .withAspectRatio(config.aspect_ratio_x, config.aspect_ratio_y)
@@ -332,8 +335,7 @@ public class PictureBaseActivity extends FragmentActivity {
         String path = list.size() > 0 ? list.get(0) : "";
         boolean isHttp = PictureMimeType.isHttp(path);
         String imgType = PictureMimeType.getLastImgType(path);
-        boolean isAndroidQ = SdkVersionUtils.checkedAndroid_Q();
-        Uri uri = isHttp || isAndroidQ ? Uri.parse(path) : Uri.fromFile(new File(path));
+        Uri uri = isHttp ? Uri.parse(path) : Uri.fromFile(new File(path));
         UCropMulti.of(uri, Uri.fromFile(new File(PictureFileUtils.getDiskCacheDir(this),
                 System.currentTimeMillis() + imgType)))
                 .withAspectRatio(config.aspect_ratio_x, config.aspect_ratio_y)
@@ -353,8 +355,7 @@ public class PictureBaseActivity extends FragmentActivity {
         if (degree > 0) {
             // 针对相片有旋转问题的处理方式
             try {
-                //获取缩略图显示到屏幕上
-                BitmapFactory.Options opts = new BitmapFactory.Options();
+                BitmapFactory.Options opts = new BitmapFactory.Options();//获取缩略图显示到屏幕上
                 opts.inSampleSize = 2;
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
                 Bitmap bmp = PictureFileUtils.rotaingImageView(degree, bitmap);
@@ -428,59 +429,15 @@ public class PictureBaseActivity extends FragmentActivity {
      * @param images
      */
     protected void onResult(List<LocalMedia> images) {
-        boolean androidQ = SdkVersionUtils.checkedAndroid_Q();
-        boolean isVideo = PictureMimeType.isVideo(images != null && images.size() > 0
-                ? images.get(0).getPictureType() : "");
-        if (androidQ && !isVideo) {
-            showCompressDialog();
+        dismissCompressDialog();
+        if (config.camera
+                && config.selectionMode == PictureConfig.MULTIPLE
+                && selectionMedias != null) {
+            images.addAll(images.size() > 0 ? images.size() - 1 : 0, selectionMedias);
         }
-        RxUtils.io(new RxUtils.RxSimpleTask<List<LocalMedia>>() {
-            @NonNull
-            @Override
-            public List<LocalMedia> doSth(Object... objects) {
-                if (androidQ && !isVideo) {
-                    // Android Q 版本做拷贝应用内沙盒适配
-                    int size = images.size();
-                    for (int i = 0; i < size; i++) {
-                        LocalMedia media = images.get(i);
-                        if (media == null || TextUtils.isEmpty(media.getPath())) {
-                            continue;
-                        }
-                        if (media.isCompressed()) {
-                            media.setPath(media.getCompressPath());
-                        } else if (media.isCut()) {
-                            media.setPath(media.getCutPath());
-                        } else {
-                            String cachedDir = PictureFileUtils.getDiskCacheDir(getApplicationContext());
-                            String imgType = PictureMimeType.getLastImgType(media.getPath());
-                            String newPath = cachedDir + File.separator + System.currentTimeMillis() + imgType;
-                            Bitmap bitmapFromUri = BitmapUtils.getBitmapFromUri(getApplicationContext(),
-                                    Uri.parse(media.getPath()));
-                            BitmapUtils.saveBitmap(bitmapFromUri, newPath);
-                            media.setPath(newPath);
-                        }
-
-                    }
-                    return images;
-                }
-                // 非Q版本不做处理
-                return images;
-            }
-
-            @Override
-            public void onNext(List<LocalMedia> mediaList) {
-                super.onNext(mediaList);
-                dismissCompressDialog();
-                if (config.camera
-                        && config.selectionMode == PictureConfig.MULTIPLE
-                        && selectionMedias != null) {
-                    mediaList.addAll(mediaList.size() > 0 ? mediaList.size() - 1 : 0, selectionMedias);
-                }
-                Intent intent = PictureSelector.putIntentResult(mediaList);
-                setResult(RESULT_OK, intent);
-                closeActivity();
-            }
-        });
+        Intent intent = PictureSelector.putIntentResult(images);
+        setResult(RESULT_OK, intent);
+        closeActivity();
     }
 
     /**
@@ -511,7 +468,7 @@ public class PictureBaseActivity extends FragmentActivity {
     protected int getLastImageId(boolean eqVideo) {
         try {
             //selection: 指定查询条件
-            String absolutePath = PictureFileUtils.getDCIMCameraPath(this);
+            String absolutePath = PictureFileUtils.getDCIMCameraPath();
             String ORDER_BY = MediaStore.Files.FileColumns._ID + " DESC";
             String selection = eqVideo ? MediaStore.Video.Media.DATA + " like ?" :
                     MediaStore.Images.Media.DATA + " like ?";

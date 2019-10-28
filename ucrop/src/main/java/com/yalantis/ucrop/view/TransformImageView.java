@@ -6,13 +6,12 @@ import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
-
-import androidx.annotation.IntRange;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.yalantis.ucrop.callback.BitmapLoadCallback;
 import com.yalantis.ucrop.model.ExifInfo;
@@ -52,8 +51,7 @@ public class TransformImageView extends ImageView {
 
     private int mMaxBitmapSize = 0;
 
-    private Uri mImageInputUri;
-    private String mImageOutputPath;
+    private String mImageInputPath, mImageOutputPath;
     private ExifInfo mExifInfo;
 
     /**
@@ -119,8 +117,8 @@ public class TransformImageView extends ImageView {
         setImageDrawable(new FastBitmapDrawable(bitmap));
     }
 
-    public Uri getImageInputUri() {
-        return mImageInputUri;
+    public String getImageInputPath() {
+        return mImageInputPath;
     }
 
     public String getImageOutputPath() {
@@ -144,9 +142,9 @@ public class TransformImageView extends ImageView {
                 new BitmapLoadCallback() {
 
                     @Override
-                    public void onBitmapLoaded(@NonNull Bitmap bitmap, @NonNull ExifInfo exifInfo, @NonNull Uri imageInputUri, @Nullable Uri imageOutputUri) {
-                        mImageInputUri = imageInputUri;
-                        mImageOutputPath = imageOutputUri.getPath();
+                    public void onBitmapLoaded(@NonNull Bitmap bitmap, @NonNull ExifInfo exifInfo, @NonNull String imageInputPath, @Nullable String imageOutputPath) {
+                        mImageInputPath = imageInputPath;
+                        mImageOutputPath = imageOutputPath;
                         mExifInfo = exifInfo;
 
                         mBitmapDecoded = true;

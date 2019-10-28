@@ -2,8 +2,7 @@ package com.luck.picture.lib.config;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import androidx.annotation.StyleRes;
+import android.support.annotation.StyleRes;
 
 import com.luck.picture.lib.R;
 import com.luck.picture.lib.entity.LocalMedia;
