@@ -42,7 +42,9 @@
             android:layout_centerVertical="true"
             android:enabled="false"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone"
+            >
 
             <TextView
                 android:id="@+id/picture_tv_img_num"
